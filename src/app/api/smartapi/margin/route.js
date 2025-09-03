@@ -9,7 +9,7 @@ export async function POST(req) {
     const baseUrl =
       process.env.NODE_ENV === "development"
         ? "http://localhost:8888"
-        : "https://effulgent-kangaroo-92ea19.netlify.app/"; // set this in Netlify settings
+        : process.env.SITE_URL; // set this in Netlify settings
 
     const sessionRes = await fetch(`${baseUrl}/.netlify/functions/ensureSession`, {
       method: "GET",
@@ -53,7 +53,6 @@ export async function POST(req) {
     );
   }
 }
-
 
 
 
