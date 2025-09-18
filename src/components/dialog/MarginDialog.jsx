@@ -1,21 +1,152 @@
 "use client"
 
-import { Button, CloseButton, Dialog, Portal } from "@chakra-ui/react"
+import React, { useState, useEffect } from "react"
+import {
+  Dialog, Box,
+  Portal,
+  VStack,
+  HStack,
+  Text,
+  Button,
+  CloseButton,
+  Checkbox,
+  Spinner,
+} from "@chakra-ui/react"
 
-const MarginDialog = ({ open, onOpenChange }) => {
+
+
+
+const MarginDialog = ({ item, open, onOpenChange }) => {
+  const [isBuy, setIsBuy] = React.useState(true);
+  const [margin, setMargin] = React.useState(null);
+  const [loading, setLoading] = React.useState(false);
+
+  const handleMarginCall = async () => {
+    // console.log(item)
+    try {
+      setLoading(true);
+      setMargin(null); 
+      const positions = [{
+        exchange: item.exch_seg,
+        qty: item.lotsize,
+        productType: "INTRADAY",
+        token: item.token,
+        tradeType: isBuy ? "BUY" : "SELL",
+        orderType: "MARKET",
+      }];
+      // console.log(positions)
+
+      const resp = await fetch("/api/smartapi/margin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({positions})
+      });
+      
+
+      const data = await resp.json();
+      setMargin(data.data); 
+      console.log("Margin response:", data);
+    } catch (err) {
+      console.error("Margin API error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <Dialog.Root lazyMount open={open} onOpenChange={onOpenChange}>
+    <Dialog.Root lazyMount open={open} onOpenChange={onOpenChange} size='lg'>
       <Portal>
-        {/* Optional: Uncomment if you want a backdrop */}
-        {/* <Dialog.Backdrop /> */}
+        <Dialog.Backdrop />
         <Dialog.Positioner>
-          <Dialog.Content boxShadow='sm'>
+          <Dialog.Content h='max-content'>
             <Dialog.Header>
-              <Dialog.Title>Dialog Title</Dialog.Title>
+              <Dialog.Title>{item.symbol}</Dialog.Title>
             </Dialog.Header>
 
-            <Dialog.Body>
-              {/* Add content here */}
+            <Dialog.Body display='flex' gap={5} justify='space-between'>
+
+              <VStack align='start' w='50%'>
+                {/* Info section */}
+                <VStack align="start" spacing={3}>
+                  <HStack>
+                    <Text fontWeight="bold">Exchange:</Text>
+                    <Text>{item.exch_seg}</Text>
+                  </HStack>
+                  <HStack>
+                    <Text fontWeight="bold">Token:</Text>
+                    <Text>{item.token}</Text>
+                  </HStack>
+                  <HStack>
+                    <Text fontWeight="bold">Name:</Text>
+                    <Text>{item.symbol}</Text>
+                  </HStack>
+                  <HStack>
+                    <Text fontWeight="bold">Quantity (Lot Size):</Text>
+                    <Text>{item.lotsize}</Text>
+                  </HStack>
+                </VStack>
+
+                {/* Buy / Sell Selector */}
+                <Checkbox.Root
+                  my={5}
+                  checked={isBuy}
+                  onCheckedChange={(e) => setIsBuy(!!e)}
+                >
+                  <Checkbox.HiddenInput />
+                  <Checkbox.Control>
+                    <Checkbox.Indicator />
+                  </Checkbox.Control>
+                  <Checkbox.Label>Buy</Checkbox.Label>
+                </Checkbox.Root>
+
+                <Checkbox.Root
+                  my={5}
+                  checked={!isBuy}
+                  onCheckedChange={(e) => setIsBuy(!isBuy)}
+                >
+                  <Checkbox.HiddenInput />
+                  <Checkbox.Control>
+                    <Checkbox.Indicator />
+                  </Checkbox.Control>
+                  <Checkbox.Label>Sell</Checkbox.Label>
+                </Checkbox.Root>
+              </VStack>
+
+              <Box w='90%'>
+              {/* Server response display */}
+              {loading && <Text>Loading margin...</Text>}
+              {margin ? (
+                
+                <Box 
+                  bg='white' boxShadow='lg' 
+                  borderRadius='lg' overflow='auto'
+                >   
+                    <Box w='full' borderTopRadius='lg' h='max-content' p={2} bg='#edf6ff' >
+                        <Text letterSpacing={'wide'} fontFamily='poppins' textAlign='center' color='#4185f6'>Combined Margin Requirements</Text>
+                    </Box>
+
+                    <Box p={2} w='full' gap={6} fontFamily='onest' mb={12}>
+                        <Box w='90%' mx='5%' p={4} my={6} bg='#fff47c' boxShadow='lg' borderRadius='lg' >
+                            <Text fontWeight='semibold'>Span: <Text color='black' mx={4} fontSize='xl' as='span' fontWeight='bold'>
+                                Rs. {margin ? margin?.marginComponents?.spanMargin : "--"}
+                            </Text></Text>
+                        </Box>
+                        <Box w='90%' mx='5%' p={4} my={6} bg='rgba(255, 244, 124, 1)' boxShadow='lg' borderRadius='lg' >
+                            <Text fontWeight='semibold'>Exposure Margin: <Text color='black' mx={4} fontSize='xl' as='span' fontWeight='bold'>
+                                Rs. {margin ? margin?.marginComponents?.spanMargin : "--"}
+                            </Text></Text>
+                        </Box>
+                        <Box mb={12} w='90%' mx='5%' p={4} my={6} bg='#fff47c' boxShadow='lg' borderRadius='lg' >
+                            <Text fontWeight='semibold'>Total Margin: <Text mx={4} color='black' fontSize='xl' as='span' fontWeight='bold'>
+                                Rs. {margin ? parseFloat(margin?.totalMarginRequired)?.toFixed(2) : "--"}
+                            </Text></Text>
+                        </Box>
+                    </Box>
+
+                </Box>
+              ) : !loading && <Text>No data to show</Text>}
+
+              </Box>
             </Dialog.Body>
 
             <Dialog.Footer>
@@ -25,7 +156,14 @@ const MarginDialog = ({ open, onOpenChange }) => {
               >
                 Cancel
               </Button>
-              <Button onClick={() => onOpenChange({ open: false })}>Save</Button>
+              <Button
+                colorScheme={isBuy ? "green" : "red"}
+                onClick={handleMarginCall}
+                disabled={loading}
+                bg='#fff47c' color='gray.800'
+              >
+                {isBuy ? "Check Buy Margin" : "Check Sell Margin"}
+              </Button>
             </Dialog.Footer>
 
             <Dialog.CloseTrigger asChild>
@@ -35,7 +173,27 @@ const MarginDialog = ({ open, onOpenChange }) => {
         </Dialog.Positioner>
       </Portal>
     </Dialog.Root>
-  )
-}
+  );
+};
 
-export default MarginDialog
+export default MarginDialog;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
