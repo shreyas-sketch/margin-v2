@@ -1,17 +1,7 @@
 [build]
   command = "npm run build"
-  publish = ".next"               # ✅ The plugin rewrites this to use proper output
+  publish = ".next"               # ✅ Not dist — use .next for Next.js
   functions = "netlify/functions"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
-
-
-[functions]
-  node_bundler = "esbuild"
-  external_node_modules = ["@supabase/supabase-js"]
-  included_files = ["netlify/functions/**"]
-
-
-[build.environment]
-  NODE_VERSION = "18"

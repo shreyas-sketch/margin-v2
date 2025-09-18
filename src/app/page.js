@@ -10,8 +10,6 @@ import CommodityContent from "@/components/tabs/tabs-content/CommodityContent"
 import CurrencyContent from "@/components/tabs/tabs-content/CurrencyContent"
 import EquityContent from "@/components/tabs/tabs-content/EquityContent"
 
-
-
 export default function Home() {
   const [selectedValue, setSelectedValue] = useState("f&o")
   const [loading, setLoading] = useState(false)
@@ -26,7 +24,7 @@ export default function Home() {
   const handleUpdate = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/.netlify/functions/fetchAndSegmentSymbols'); // works both locally & in prod
+      const response = await fetch('http://localhost:8888/.netlify/functions/fetchAndSplit'); // works both locally & in prod
       console.log(response)
       if (!response.ok) throw new Error("Failed to update instruments");
 
@@ -67,14 +65,16 @@ export default function Home() {
           onClick={async () => {
             setLoading(true);
             try {
-              const response = await fetch('/.netlify/functions/fetchAndSegmentSymbols'); 
+              const response = await fetch('/.netlify/functions/fetchAndSplit'); // works both locally & in prod
               
               if (!response.ok) throw new Error("Failed to update instruments");
 
               const data = await response.json();
               console.log("Instruments updated:", data);
+              // Optionally show toast or update UI
             } catch (error) {
               console.error("Error:", error);
+              // Optionally show error toast
             } finally {
               setLoading(false);
             }
@@ -82,7 +82,7 @@ export default function Home() {
           disabled={loading}
           _hover={{ bg: '#fff47c' }}
         >
-           {loading ? <Spinner size="sm" color="black" /> : "Update Instruments"}
+           {loading ? <Spinner size="sm" color="white" /> : "Update Instruments"}
         </Button>
 
       </Center>

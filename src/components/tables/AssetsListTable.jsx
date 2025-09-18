@@ -69,8 +69,6 @@ import { useState, useMemo } from "react"
 import Fuse from "fuse.js"
 import MarginDialog from "../dialog/MarginDialog"
 
-
-
 const AssetsListTable = ({ data = [] }) => {
   const [page, setPage] = useState(1)
   const [open, setOpen] = useState(false)
@@ -122,6 +120,8 @@ const AssetsListTable = ({ data = [] }) => {
             <Table.ColumnHeader color="black">Token</Table.ColumnHeader>
             <Table.ColumnHeader color="black">Contract</Table.ColumnHeader>
             <Table.ColumnHeader color="black" textAlign={'center'}>Name</Table.ColumnHeader>
+            <Table.ColumnHeader color="black">NRML Margin Rate</Table.ColumnHeader>
+            <Table.ColumnHeader color="black">Price</Table.ColumnHeader>
             <Table.ColumnHeader color="black" textAlign="center">
               Action
             </Table.ColumnHeader>
@@ -134,6 +134,8 @@ const AssetsListTable = ({ data = [] }) => {
               <Table.Cell>{item.token}</Table.Cell>
               <Table.Cell>{item.symbol}</Table.Cell>
               <Table.Cell textAlign="center">{item.name}</Table.Cell>
+              <Table.Cell textAlign="center">{item.price}</Table.Cell>
+              <Table.Cell textAlign="center">{item.category}</Table.Cell>
               <Table.Cell textAlign="center">
                 <Button 
                     size='sm' borderRadius='full' w='80px'
@@ -143,7 +145,7 @@ const AssetsListTable = ({ data = [] }) => {
                 >
                     Calculate
                 </Button>
-                <MarginDialog item={item} open={open} onOpenChange={(e) => setOpen(e.open)} />
+                <MarginDialog open={open} onOpenChange={(e) => setOpen(e.open)} />
               </Table.Cell>
             </Table.Row>
           ))}
